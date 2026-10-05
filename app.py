@@ -16,20 +16,21 @@ ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages"
 CLAUDE_MODEL      = "claude-sonnet-4-6"
 
 COLORS = {
-    "red":    "#b5493f",   # rust
-    "blue":   "#2a6f6f",   # accent teal
-    "purple": "#6d4c6f",   # plum
-    "teal":   "#1f4f4f",   # deep teal
-    "coral":  "#c17a4a",   # burnt gold
-    "gray":   "#6b6259",   # muted ink
-    "green":  "#5c7a52",   # sage
-    "pink":   "#a15c6b",   # dusty rose
-    "amber":  "#d9a441",   # gold
+    "red":    "#c2554a",   # signal rust (children)
+    "blue":   "#1f7a8c",   # accent teal
+    "purple": "#3d5a80",   # steel blue
+    "teal":   "#0f4c5c",   # deep teal
+    "coral":  "#5b8db8",   # sky blue
+    "gray":   "#6b7b8c",   # slate
+    "green":  "#4f9a94",   # sea glass
+    "pink":   "#b06c84",   # dusty rose
+    "amber":  "#e0a83a",   # beacon amber
 }
 AGE_COLORS   = [COLORS["coral"], COLORS["purple"], COLORS["teal"]]
 GROUP_COLORS = [COLORS["red"],   COLORS["blue"],   COLORS["gray"], COLORS["green"]]
 SEX_COLORS   = [COLORS["blue"],  COLORS["pink"]]
-RACE_COLORS  = [COLORS["coral"], COLORS["blue"],   COLORS["gray"], COLORS["green"], COLORS["purple"]]
+RACE_COLORS  = [COLORS["coral"], COLORS["blue"],   COLORS["gray"], COLORS["green"], COLORS["purple"],
+                COLORS["teal"],  COLORS["pink"],   COLORS["amber"], "#a9bccb", "#2c3e50"]
 
 _APP_DIR = os.path.dirname(os.path.abspath(__file__))
 _csv_candidates = sorted(
@@ -40,10 +41,9 @@ _csv_candidates = sorted(
 DEFAULT_CSV = os.path.join(_APP_DIR, _csv_candidates[0]) if _csv_candidates else None
 
 
-def get_chart_layout(theme="light"):
-    dark = theme == "dark"
-    text_color = "#a49c8c" if dark else "#6b6259"
-    grid_color  = "#3a423d" if dark else "#dfd8c8"
+def get_chart_layout():
+    text_color = "#5b6b7a"
+    grid_color = "#d6dee5"
     base = dict(
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
@@ -51,7 +51,7 @@ def get_chart_layout(theme="light"):
         margin=dict(l=10, r=10, t=10, b=10),
         showlegend=False,
     )
-    return base, grid_color, dark
+    return base, grid_color
 
 
 # ── Data helpers ──────────────────────────────────────────────────────────────
@@ -153,7 +153,7 @@ def news_search_prompt(row: dict) -> str:
 app = Dash(
     __name__,
     external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP],
-    title="NamUs Dashboard",
+    title="Homeward · Missing Persons Helper",
     suppress_callback_exceptions=True,
 )
 
@@ -162,57 +162,42 @@ app.index_string = """<!DOCTYPE html>
     <head>
         {%metas%}
         <title>{%title%}</title>
-        {%favicon%}
+        <link rel="icon" type="image/svg+xml" href="/assets/logo.svg">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
         <style>
 /* ═══════════════════════════════════════════════════════════════
-   Theme tokens — light (default) and dark
+   Theme tokens
    Editorial / print palette to match intentional-tech.aatwal.com
 ═══════════════════════════════════════════════════════════════ */
 :root {
-    --bg:          #f6f3ec;
+    --bg:          #f3f6f8;
     --bg-card:     #ffffff;
-    --bg-surface:  #efe9dc;
+    --bg-surface:  #e9eff3;
     --bg-input:    #ffffff;
-    --bg-chat:     #efe9dc;
-    --border:      #dfd8c8;
-    --text:        #1c2b33;
-    --text-muted:  #6b6259;
-    --shadow:      0 2px 10px rgba(28,43,51,0.06);
-    --shadow-md:   0 4px 16px rgba(28,43,51,0.10);
+    --bg-chat:     #e9eff3;
+    --border:      #d6dee5;
+    --text:        #13293d;
+    --text-muted:  #5b6b7a;
+    --shadow:      0 2px 10px rgba(19,41,61,0.06);
+    --shadow-md:   0 4px 16px rgba(19,41,61,0.10);
     --radius:      2px;
     --radius-sm:   2px;
-    --accent:      #2a6f6f;
-    --accent-hl:   rgba(42,111,111,0.08);
-    --blue:        #2a6f6f;
-    --gold:        #d9a441;
-    --rust:        #b5493f;
-    --grid:        #dfd8c8;
-    --font-serif:  "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-    --font-sans:   "Helvetica Neue", Arial, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-
-[data-bs-theme="dark"] {
-    --bg:          #1b201e;
-    --bg-card:     #242b28;
-    --bg-surface:  #1f2624;
-    --bg-input:    #242b28;
-    --bg-chat:     #1f2624;
-    --border:      #3a423d;
-    --text:        #e9e4d8;
-    --text-muted:  #a49c8c;
-    --shadow:      0 2px 10px rgba(0,0,0,0.35);
-    --shadow-md:   0 4px 16px rgba(0,0,0,0.45);
-    --accent:      #4a9d9d;
-    --accent-hl:   rgba(74,157,157,0.14);
-    --blue:        #4a9d9d;
-    --gold:        #e3b866;
-    --rust:        #d17164;
-    --grid:        #3a423d;
+    --accent:      #1f7a8c;
+    --accent-hl:   rgba(31,122,140,0.09);
+    --blue:        #1f7a8c;
+    --gold:        #e0a83a;
+    --rust:        #c2554a;
+    --grid:        #d6dee5;
+    --font-serif:  "Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+    --font-sans:   "Inter", "Helvetica Neue", Arial, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 /* ═══════════════════════════════════════════════════════════════
    Base
 ═══════════════════════════════════════════════════════════════ */
+input[type="radio"], input[type="checkbox"] { accent-color: var(--accent); }
+
 body {
     background-color: var(--bg) !important;
     color: var(--text) !important;
@@ -237,29 +222,70 @@ h1, h2, h3.editorial, h5 {
     margin-bottom: 8px;
 }
 
+.app-header {
+    position: relative;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding: 28px 0 24px;
+    margin-bottom: 28px;
+    border-bottom: 2px solid var(--text);
+}
+
+.app-header > [class*="col"] { padding-left: 0; padding-right: 0; }
+
+.app-header::after {
+    content: "";
+    position: absolute;
+    left: 0; bottom: -2px;
+    width: 96px; height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--gold));
+}
+
 .logo-lockup {
     display: flex;
     align-items: center;
     gap: 14px;
-    margin-bottom: 8px;
+    margin-bottom: 22px;
 }
 
 .logo-mark {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(15,76,92,0.28);
+    flex-shrink: 0;
+}
+
+.logo-word {
     font-family: var(--font-serif);
     font-weight: 700;
-    font-size: 18px;
-    color: var(--bg);
-    background: linear-gradient(90deg, var(--accent), var(--gold));
-    border-radius: 3px;
-    padding: 8px 14px;
+    font-size: 26px;
     line-height: 1;
+    letter-spacing: -0.01em;
+    color: var(--text);
+}
+
+.logo-word em {
+    font-style: normal;
+    color: var(--accent);
+}
+
+.logo-tag {
+    font-family: var(--font-sans);
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-top: 5px;
 }
 
 .app-title {
     font-family: var(--font-serif);
     font-weight: 600;
-    font-size: 1.85rem;
+    font-size: 2.1rem;
     line-height: 1.15;
+    letter-spacing: -0.015em;
     color: var(--text);
     margin: 0;
 }
@@ -291,12 +317,32 @@ h1, h2, h3.editorial, h5 {
 ═══════════════════════════════════════════════════════════════ */
 .metric-card {
     border-radius: var(--radius) !important;
-    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+    border-top: 3px solid var(--metric-color, var(--accent)) !important;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
 }
 
 .metric-card:hover {
     box-shadow: var(--shadow-md) !important;
-    border-color: var(--accent) !important;
+    transform: translateY(-2px);
+}
+
+.metric-value {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    font-size: 2.2rem;
+    line-height: 1.05;
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+}
+
+.metric-icon {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    margin-right: 10px;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -534,30 +580,6 @@ h1, h2, h3.editorial, h5 {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   Theme toggle button
-═══════════════════════════════════════════════════════════════ */
-.theme-toggle {
-    width: 34px;
-    height: 34px;
-    border-radius: 50% !important;
-    border: 1px solid var(--border) !important;
-    background: var(--bg-card) !important;
-    color: var(--text-muted) !important;
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    padding: 0 !important;
-    font-size: 14px;
-}
-
-.theme-toggle:hover {
-    color: var(--accent) !important;
-    border-color: var(--accent) !important;
-    box-shadow: var(--shadow-md) !important;
-}
-
-/* ═══════════════════════════════════════════════════════════════
    Buttons
 ═══════════════════════════════════════════════════════════════ */
 .btn {
@@ -609,7 +631,7 @@ h1, h2, h3.editorial, h5 {
 .btn-outline-warning:hover {
     background-color: var(--gold) !important;
     border-color: var(--gold) !important;
-    color: #1c2b33 !important;
+    color: #13293d !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -634,10 +656,24 @@ h1, h2, h3.editorial, h5 {
 ═══════════════════════════════════════════════════════════════ */
 hr { border-color: var(--border) !important; opacity: 1 !important; }
 
+
 /* ═══════════════════════════════════════════════════════════════
-   Spinner
+   Footer
 ═══════════════════════════════════════════════════════════════ */
-[data-bs-theme="dark"] .text-muted { color: var(--text-muted) !important; }
+.app-footer {
+    margin-top: 48px;
+    padding: 20px 0 32px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.app-footer a { color: var(--accent); text-decoration: none; }
+.app-footer a:hover { text-decoration: underline; }
         </style>
         {%css%}
     </head>
@@ -656,17 +692,16 @@ hr { border-color: var(--border) !important; opacity: 1 !important; }
 def metric_card(label, value, color=COLORS["red"], icon="bi-person"):
     return dbc.Card(dbc.CardBody([
         html.Div([
-            html.I(className=f"bi {icon} me-2", style={"color": color, "fontSize": "20px"}),
+            html.Span(html.I(className=f"bi {icon}"), className="metric-icon",
+                      style={"color": color, "backgroundColor": f"{color}1a"}),
             html.Span(label, style={
                 "fontSize": "11px", "fontWeight": 700,
                 "textTransform": "uppercase", "letterSpacing": "0.6px",
                 "color": "var(--text-muted)",
             }),
-        ], className="d-flex align-items-center mb-2"),
-        html.H3(str(value), style={
-            "fontWeight": 700, "color": color, "margin": 0, "fontSize": "1.9rem",
-        }),
-    ]), className="metric-card h-100")
+        ], className="d-flex align-items-center mb-3"),
+        html.H3(str(value), className="metric-value", style={"color": color}),
+    ]), className="metric-card h-100", style={"--metric-color": color})
 
 
 def section_header(title, idx=None):
@@ -681,16 +716,20 @@ def section_header(title, idx=None):
 app.layout = dbc.Container([
     dcc.Store(id="data-store"),
     dcc.Store(id="chat-history", data=[]),
-    dcc.Store(id="theme-store", data="light", storage_type="local"),
 
     # ── Header ────────────────────────────────────────────────────────────────
     dbc.Row([
         dbc.Col([
             html.Div([
-                html.Span("a@wal", className="logo-mark"),
-                html.Div("NamUs · California", className="eyebrow", style={"marginBottom": 0}),
+                html.Img(src=app.get_asset_url("logo.svg"), alt="Homeward",
+                         className="logo-mark"),
+                html.Div([
+                    html.Div(["Home", html.Em("ward")], className="logo-word"),
+                    html.Div("Missing Persons Helper", className="logo-tag"),
+                ]),
             ], className="logo-lockup"),
-            html.H1("Missing Persons Dashboard", className="app-title"),
+            html.Div("NamUs · California", className="eyebrow"),
+            html.H1("Every case is someone's way home.", className="app-title"),
             html.P(
                 "Explore active NamUs missing-persons cases across California. "
                 "Filter by county, age, and race to surface patterns and check "
@@ -698,21 +737,7 @@ app.layout = dbc.Container([
                 className="app-sub",
             ),
         ]),
-        dbc.Col(
-            html.Div(
-                dbc.Button(
-                    html.I(id="theme-icon", className="bi bi-moon-stars-fill"),
-                    id="theme-toggle-btn",
-                    className="theme-toggle",
-                    n_clicks=0,
-                    title="Toggle dark mode",
-                ),
-                className="d-flex justify-content-end align-items-start h-100",
-            ),
-            md=2,
-        ),
-    ], className="py-4 mb-4",
-       style={"borderBottom": "2px solid var(--text)"}),
+    ], className="app-header"),
 
     # ── Upload ────────────────────────────────────────────────────────────────
     dbc.Card(dbc.CardBody([
@@ -796,7 +821,7 @@ app.layout = dbc.Container([
     dbc.Tabs([
 
         # Charts
-        dbc.Tab(label="📊 Charts", tab_id="tab-charts", children=[
+        dbc.Tab(label="Charts", tab_id="tab-charts", children=[
             dbc.Row([
                 dbc.Col([
                     section_header("Age group", 1),
@@ -844,7 +869,7 @@ app.layout = dbc.Container([
         ]),
 
         # Map
-        dbc.Tab(label="🗺️ Map", tab_id="tab-map", children=[
+        dbc.Tab(label="Map", tab_id="tab-map", children=[
             html.Div([
                 section_header("Cases by county", 1),
                 html.P("Bubble size and color indicate case count.",
@@ -857,7 +882,7 @@ app.layout = dbc.Container([
         ]),
 
         # Cases
-        dbc.Tab(label="📋 Cases", tab_id="tab-cases", children=[
+        dbc.Tab(label="Cases", tab_id="tab-cases", children=[
             html.Div([
                 dbc.Row([
                     dbc.Col([
@@ -916,7 +941,7 @@ app.layout = dbc.Container([
                          "backgroundColor": "var(--accent-hl)",
                          "border": "none"},
                         {"if": {"filter_query": "{Age} < 6 && {Age} > -1"},
-                         "backgroundColor": "rgba(181,73,63,0.08)", "color": COLORS["red"]},
+                         "backgroundColor": "rgba(194,85,74,0.08)", "color": COLORS["red"]},
                     ],
                 ),
                 html.Div(id="case-detail", className="mt-3"),
@@ -924,7 +949,7 @@ app.layout = dbc.Container([
         ]),
 
         # News Check
-        dbc.Tab(label="📰 News Check", tab_id="tab-news", children=[
+        dbc.Tab(label="News Check", tab_id="tab-news", children=[
             html.Div([
                 section_header("Media attention checker", 1),
                 html.P([
@@ -977,7 +1002,7 @@ app.layout = dbc.Container([
         ]),
 
         # AI Chat
-        dbc.Tab(label="🤖 AI Chat", tab_id="tab-chat", children=[
+        dbc.Tab(label="AI Chat", tab_id="tab-chat", children=[
             html.Div([
                 section_header("Ask Claude about the data", 1),
                 html.P("Ask any question about the missing persons dataset.",
@@ -1038,31 +1063,13 @@ app.layout = dbc.Container([
                "marginTop": "2.5rem", "marginBottom": "1.5rem"},
     ),
 
+    html.Footer([
+        html.Span(["Homeward · data from ",
+                   html.A("NamUs", href="https://namus.nij.ojp.gov", target="_blank")]),
+        html.Span("If you have information about a case, contact the investigating agency listed on NamUs."),
+    ], className="app-footer"),
+
 ], fluid=True, style={"maxWidth": "1200px"})
-
-
-# ── Theme callbacks ───────────────────────────────────────────────────────────
-app.clientside_callback(
-    """
-    function(theme) {
-        const t = theme || 'light';
-        document.documentElement.setAttribute('data-bs-theme', t);
-        return 'bi ' + (t === 'dark' ? 'bi-sun-fill' : 'bi-moon-stars-fill');
-    }
-    """,
-    Output("theme-icon", "className"),
-    Input("theme-store", "data"),
-)
-
-
-@app.callback(
-    Output("theme-store", "data"),
-    Input("theme-toggle-btn", "n_clicks"),
-    State("theme-store", "data"),
-    prevent_initial_call=True,
-)
-def toggle_theme(_, current):
-    return "dark" if (current or "light") == "light" else "light"
 
 
 # ── Data load callback ────────────────────────────────────────────────────────
@@ -1135,10 +1142,9 @@ def apply_filters(df, view, counties, races, days_max, search):
     Input("race-filter",   "value"),
     Input("days-slider",   "value"),
     Input("search-box",    "value"),
-    Input("theme-store",   "data"),
     prevent_initial_call=True,
 )
-def update_all(json_data, view, counties, races, days_max, search, theme):
+def update_all(json_data, view, counties, races, days_max, search):
     if not json_data:
         raise PreventUpdate
 
@@ -1158,7 +1164,7 @@ def update_all(json_data, view, counties, races, days_max, search, theme):
         dbc.Col(metric_card("Top county",      top_cty,        COLORS["teal"],   "bi-geo-alt"),        md=3),
     ], className="g-3").children
 
-    base_layout, grid_color, dark = get_chart_layout(theme)
+    base_layout, grid_color = get_chart_layout()
 
     # Age bar
     if view == "children":
@@ -1220,7 +1226,7 @@ def update_all(json_data, view, counties, races, days_max, search, theme):
         line=dict(color=COLORS["blue"], width=2),
         marker=dict(size=5),
         fill="tozeroy",
-        fillcolor="rgba(24,95,165,0.10)",
+        fillcolor="rgba(31,122,140,0.10)",
     ))
     time_fig.update_layout(**base_layout,
         xaxis=dict(showgrid=False),
@@ -1285,7 +1291,7 @@ def update_all(json_data, view, counties, races, days_max, search, theme):
         marker=dict(
             size=[max(6, v**0.5 * 3) for v in map_vals],
             color=map_vals,
-            colorscale=[[0, "#fce8e8"], [1, COLORS["red"]]],
+            colorscale=[[0, "#cfe6ec"], [1, COLORS["teal"]]],
             showscale=True,
             colorbar=dict(
                 title=dict(text="Cases", font=dict(color=base_layout["font"]["color"])),
@@ -1302,9 +1308,9 @@ def update_all(json_data, view, counties, races, days_max, search, theme):
         margin=dict(l=0, r=0, t=0, b=0),
         geo=dict(
             scope="usa",
-            showland=True,  landcolor="#1c1f2a"  if dark else "#f5f5f5",
-            showlakes=True, lakecolor="#0d1018"   if dark else "#dce9f5",
-            showsubunits=True, subunitcolor="#2a2e42" if dark else "#cccccc",
+            showland=True,  landcolor="#eef2f5",
+            showlakes=True, lakecolor="#d9e7ef",
+            showsubunits=True, subunitcolor="#c3cfd9",
             bgcolor="rgba(0,0,0,0)",
             center=dict(lat=37.5, lon=-119.5),
             projection_scale=4.5,
